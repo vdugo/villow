@@ -1,70 +1,35 @@
-# Getting Started with Create React App
+# Real Estate Transaction Platform on Ethereum Blockchain
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is a real estate transaction platform, implemented on Ethereum blockchain. The project showcases a simplified yet comprehensive process of real estate transactions by leveraging the advantages of smart contracts.
 
-## Available Scripts
+## Entities
+The platform includes several entities:
 
-In the project directory, you can run:
+1. **Buyer**: Initiates the buying process.
+2. **Seller**: Lists the property for selling.
+3. **Appraiser**: Provides an unbiased estimate of the property value.
+4. **Lender**: Provides funds to the buyer.
+5. **Inspector**: Checks the condition of the property.
+6. **Legal Entity**: Verifies the property ownership and conducts due diligence.
 
-### `npm start`
+Each entity is represented by an Ethereum address on the blockchain.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Smart Contracts
+The project includes three main smart contracts:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+1. **Property NFT Contract (ERC-721)**: Enables the minting of NFTs to represent properties. Images related to properties are stored on IPFS.
 
-### `npm test`
+2. **Bidding Contract**: Handles the bidding process on properties and ensures the highest bid is kept track of.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+3. **Escrow Contract**: Holds the funds in escrow during the property transaction process and facilitates the interaction among buyer, seller, appraiser, lender, inspector, and legal entity.
 
-### `npm run build`
+## Frontend
+The frontend is built with ReactJS. It provides an interface for users to interact with the platform. It allows property listing, searching, buying, and facilitates interactions based on user roles.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Please note that this project is for demonstration purposes and may not cover all aspects of real-world real estate transactions.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Installation
+(TBD)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Running the project
+(TBD)
