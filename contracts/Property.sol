@@ -10,11 +10,18 @@ contract Property is ERC721, ERC721URIStorage, AccessControl {
     using Counters for Counters.Counter;
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 public constant LEGAL_ENTITY_ROLE = keccak256("LEGAL_ENTITY_ROLE");
     Counters.Counter private _tokenIdCounter;
+
+    mapping(uint256 => bool) public propertyApprovals;
+
+    event PropertyApproved(uint256 tokenId);
+    event PropertyListed(uint256 tokenId, address seller);
 
     constructor() ERC721("Property", "REAL") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
+        _grantRole(LEGAL_ENTITY_ROLE, msg.sender);
     }
 
     function safeMint(
@@ -25,6 +32,24 @@ contract Property is ERC721, ERC721URIStorage, AccessControl {
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
+
+        // start the property off as unapproved
+        // seller lists, legal entity approves
+        propertyApprovals[tokenId] = false;
+        emit PropertyListed(tokenId, to);
+    }
+
+    function approveProperty(
+        uint256 tokenId
+    ) public onlyRole(LEGAL_ENTITY_ROLE) {
+        require(
+            _exists(tokenId),
+            "ERC721: cannot approve property that does not exist"
+        );
+
+        propertyApprovals[tokenId] = true;
+
+        emit PropertyApproved(tokenId);
     }
 
     // The following functions are overrides required by Solidity.
