@@ -9,24 +9,19 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 contract Property is ERC721, ERC721URIStorage, AccessControl {
     using Counters for Counters.Counter;
 
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant LEGAL_ENTITY_ROLE = keccak256("LEGAL_ENTITY_ROLE");
     Counters.Counter private _tokenIdCounter;
 
     // mapping to keep track of property approval
-    // seller lists, legalEntity must approve before a property can be listed
+    // anyone can list, legalEntity must approve before a property can be listed
     mapping(uint256 => bool) public propertyApprovals;
 
     constructor() ERC721("Property", "REAL") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(MINTER_ROLE, msg.sender);
         _grantRole(LEGAL_ENTITY_ROLE, msg.sender); // Grant legal entity role to the contract deployer
     }
 
-    function safeMint(
-        address to,
-        string memory uri
-    ) public onlyRole(MINTER_ROLE) {
+    function safeMint(address to, string memory uri) public {
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);
