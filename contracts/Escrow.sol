@@ -5,6 +5,7 @@ import "./Property.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract Escrow is AccessControl {
+    // buyers and sellers will be message senders
     Property public propertyContract;
     address public legalEntity;
     address public appraiser;
@@ -20,18 +21,17 @@ contract Escrow is AccessControl {
 
     constructor(
         address _propertyContract,
-        address _legalEntity,
         address _appraiser,
         address _inspector,
         address _lender
     ) {
         propertyContract = Property(_propertyContract);
-        legalEntity = _legalEntity;
+        legalEntity = msg.sender;
         appraiser = _appraiser;
         inspector = _inspector;
         lender = _lender;
 
-        _setupRole(LEGAL_ENTITY_ROLE, _legalEntity);
+        _setupRole(LEGAL_ENTITY_ROLE, msg.sender);
     }
 
     function listProperty(string memory uri) public {
