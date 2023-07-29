@@ -34,7 +34,7 @@ describe('Escrow', () => {
     it('sets the Property ERC-721 Contract to the state', async () => {
       expect(await escrow.propertyContract()).to.equal(await property.getAddress())
     })
-    it('sets the deployer as the legalEntity in the state', async () => {
+    it('sets the deployer of the Escrow contract as the legalEntity in the state', async () => {
       expect(await escrow.legalEntity()).to.equal(await legalEntity.getAddress())
     })
     it('sets the appraiser to the state', async () => {
@@ -45,6 +45,17 @@ describe('Escrow', () => {
     })
     it('sets the lender to the state', async () => {
       expect(await escrow.lender()).to.equal(await lender.getAddress())
+    })
+  })
+
+  describe('Listing properties', async () => {
+    it('updates the state variable mappings when a listing is creating', async () => {
+      let transaction = await escrow.connect(seller).listProperty('TODO Implement URIs')
+      await transaction.wait()
+
+      expect(await property.tokenURI(1)).to.equal('TODO Implement URIs')
+      expect(await escrow.propertyApprovals(1)).to.equal(false)
+      expect(await escrow.sellers(1)).to.equal(await seller.getAddress())
     })
   })
 
