@@ -3,39 +3,22 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract Property is ERC721, ERC721URIStorage, AccessControl {
+contract Property is ERC721, ERC721URIStorage {
     using Counters for Counters.Counter;
 
-    bytes32 public constant LEGAL_ENTITY_ROLE = keccak256("LEGAL_ENTITY_ROLE");
     Counters.Counter private _tokenIdCounter;
 
-    // mapping to keep track of property approval
-    // anyone can list, legalEntity must approve before a property can be listed
-    mapping(uint256 => bool) public propertyApprovals;
+    constructor() ERC721("Property", "REAL") {}
 
-    constructor() ERC721("Property", "REAL") {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(LEGAL_ENTITY_ROLE, msg.sender); // Grant legal entity role to the contract deployer
-    }
-
-    function safeMint(address to, string memory uri) public {
+    function safeMint(address to, string memory uri) public returns (uint256) {
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
 
-        // Start the property off as unapproved
-        propertyApprovals[tokenId] = false;
-    }
-
-    function approveProperty(
-        uint256 tokenId
-    ) public onlyRole(LEGAL_ENTITY_ROLE) {
-        require(_exists(tokenId), "ERC721: property does not exist");
-        propertyApprovals[tokenId] = true;
+        return tokenId;
     }
 
     // The following functions are overrides required by Solidity.
@@ -54,12 +37,7 @@ contract Property is ERC721, ERC721URIStorage, AccessControl {
 
     function supportsInterface(
         bytes4 interfaceId
-    )
-        public
-        view
-        override(ERC721, ERC721URIStorage, AccessControl)
-        returns (bool)
-    {
+    ) public view override(ERC721, ERC721URIStorage) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }
