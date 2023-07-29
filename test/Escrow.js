@@ -59,4 +59,25 @@ describe('Escrow', () => {
     })
   })
 
+  describe('Legal Entity Approving Properties', async () => {
+    it('updates the propertyApprovals mapping', async () => {
+      let transaction = await escrow.connect(legalEntity).approveProperty(1)
+      await transaction.wait()
+
+      expect(await escrow.propertyApprovals(1)).to.equal(true)
+    })
+    it('only lets the legalEntity approve properties', async () => {
+      await expect(escrow.connect(buyer).approveProperty(1)).to.be.reverted
+      await expect(escrow.connect(seller).approveProperty(1)).to.be.reverted
+      await expect(escrow.connect(appraiser).approveProperty(1)).to.be.reverted
+      await expect(escrow.connect(inspector).approveProperty(1)).to.be.reverted
+      await expect(escrow.connect(lender).approveProperty(1)).to.be.reverted
+    })
+    it('reverts if the property is already approved', async () => {
+      let transaction = await escrow.connect(legalEntity).approveProperty(1)
+      await transaction.wait()
+      await expect(escrow.connect(legalEntity).approveProperty(1)).to.be.reverted
+    })
+  })
+
 })
