@@ -4,6 +4,8 @@ pragma solidity ^0.8.9;
 import "./Property.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
+import "hardhat/console.sol";
+
 contract Escrow is AccessControl {
     // buyers and sellers will be message senders
     Property public propertyContract;
