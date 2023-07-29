@@ -10,7 +10,10 @@ contract Property is ERC721, ERC721URIStorage {
 
     Counters.Counter private _tokenIdCounter;
 
-    constructor() ERC721("Property", "REAL") {}
+    constructor() ERC721("Property", "REAL") {
+        // start indexing at 1 instead of 0
+        _tokenIdCounter.increment();
+    }
 
     function safeMint(address to, string memory uri) public returns (uint256) {
         uint256 tokenId = _tokenIdCounter.current();
