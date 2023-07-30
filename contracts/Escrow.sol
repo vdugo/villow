@@ -20,6 +20,8 @@ contract Escrow is AccessControl {
     mapping(uint256 => bool) public propertyApprovals;
     // tokenId => seller
     mapping(uint256 => address payable) public sellers;
+    // tokenId => price
+    mapping(uint256 => uint256) public propertyPrices;
 
     constructor(
         address _propertyContract,
@@ -36,11 +38,12 @@ contract Escrow is AccessControl {
         _setupRole(LEGAL_ENTITY_ROLE, msg.sender);
     }
 
-    function listProperty(string memory uri) public {
+    function listProperty(string memory uri, uint256 price) public {
         // Minting a new NFT in the Property contract implies the listing of the property
         uint256 newPropertyId = propertyContract.safeMint(msg.sender, uri);
 
         sellers[newPropertyId] = payable(msg.sender);
+        propertyPrices[newPropertyId] = price;
 
         // Start the property off as unapproved
         propertyApprovals[newPropertyId] = false;
@@ -57,6 +60,9 @@ contract Escrow is AccessControl {
     }
 
     function finalizeSale(uint256 tokenId) external {
-        require(propertyApprovals[tokenId] == true, "Property is not approved");
+        require(
+            propertyApprovals[tokenId] == true,
+            "Property is not approved by Legal Entity"
+        );
     }
 }

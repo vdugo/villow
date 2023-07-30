@@ -14,6 +14,8 @@ describe('Escrow', () => {
 
   // contracts
   let property, escrow, bidding
+  // 265 eth to wei about $500,000
+  const priceInWei = ethers.parseEther('265')
 
   beforeEach(async () => {
     [legalEntity, buyer, seller, appraiser, inspector, lender] = await ethers.getSigners()
@@ -50,10 +52,11 @@ describe('Escrow', () => {
 
   describe('Listing properties', async () => {
     it('updates the state variable mappings when a listing is creating', async () => {
-      let transaction = await escrow.connect(seller).listProperty('TODO Implement URIs')
+      let transaction = await escrow.connect(seller).listProperty('TODO Implement URIs', priceInWei)
       await transaction.wait()
 
       expect(await property.tokenURI(1)).to.equal('TODO Implement URIs')
+      expect(await escrow.propertyPrices(1)).to.equal(priceInWei)
       expect(await escrow.propertyApprovals(1)).to.equal(false)
       expect(await escrow.sellers(1)).to.equal(await seller.getAddress())
     })
