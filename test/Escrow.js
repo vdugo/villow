@@ -52,13 +52,15 @@ describe('Escrow', () => {
 
   describe('Listing properties', async () => {
     it('updates the state variable mappings when a listing is creating', async () => {
-      let transaction = await escrow.connect(seller).listProperty('TODO Implement URIs', priceInWei)
+      let transaction = await escrow.connect(seller).listProperty('TODO Implement URIs', priceInWei, false)
       await transaction.wait()
 
       expect(await property.tokenURI(1)).to.equal('TODO Implement URIs')
       expect(await escrow.propertyPrices(1)).to.equal(priceInWei)
       expect(await escrow.propertyApprovals(1)).to.equal(false)
       expect(await escrow.sellers(1)).to.equal(await seller.getAddress())
+      // 1 is ForDirectSale in the PropertyStatuses enum
+      expect(await escrow.propertyStatuses(1)).to.equal(1)
     })
   })
 

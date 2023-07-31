@@ -22,6 +22,17 @@ contract Escrow is AccessControl {
     mapping(uint256 => address payable) public sellers;
     // tokenId => price
     mapping(uint256 => uint256) public propertyPrices;
+    // tokenId => PropertyStatus
+    mapping(uint256 => PropertyStatus) public propertyStatuses;
+
+    // Define an enum for the sales status of each property
+    enum PropertyStatus {
+        NotForSale,
+        ForSaleDirect,
+        BiddingNotStarted,
+        BiddingActive,
+        BiddingEnded
+    }
 
     constructor(
         address _propertyContract,
@@ -38,7 +49,13 @@ contract Escrow is AccessControl {
         _setupRole(LEGAL_ENTITY_ROLE, msg.sender);
     }
 
-    function listProperty(string memory uri, uint256 price) public {
+    function listProperty(
+        string memory uri,
+        uint256 price,
+        bool forAuction
+    ) public {
+        require(bytes(uri).length > 0, "URI cannot be null");
+        require(price > 0, "price must be greater than 0");
         // Minting a new NFT in the Property contract implies the listing of the property
         uint256 newPropertyId = propertyContract.safeMint(msg.sender, uri);
 
@@ -47,6 +64,13 @@ contract Escrow is AccessControl {
 
         // Start the property off as unapproved
         propertyApprovals[newPropertyId] = false;
+
+        // Check if the seller wants Bidding (auction) or not
+        if (forAuction) {
+            propertyStatuses[newPropertyId] = PropertyStatus.BiddingNotStarted;
+        } else {
+            propertyStatuses[newPropertyId] = PropertyStatus.ForSaleDirect;
+        }
     }
 
     function approveProperty(
