@@ -25,6 +25,11 @@ contract Escrow is AccessControl {
     // tokenId => PropertyStatus
     mapping(uint256 => PropertyStatus) public propertyStatuses;
 
+    // tokenId => buyer address
+    mapping(uint256 => address) public buyers;
+    // tokenId => paid amount by buyer
+    mapping(uint256 => uint256) public paidAmounts;
+
     // Define an enum for the sales status of each property
     enum PropertyStatus {
         NotForSale,
@@ -83,10 +88,64 @@ contract Escrow is AccessControl {
         propertyApprovals[tokenId] = true;
     }
 
-    function finalizeSale(uint256 tokenId) external {
+    function buyerPayment(uint256 tokenId) external payable {
         require(
             propertyApprovals[tokenId] == true,
             "Property is not approved by Legal Entity"
         );
+        require(
+            propertyStatuses[tokenId] == PropertyStatus.ForSaleDirect ||
+                propertyStatuses[tokenId] == PropertyStatus.BiddingEnded,
+            "Property must be for DirectSale or bidding must have ended on the property"
+        );
+
+        // Check if the buyer has sent enough funds
+        require(
+            msg.value >= propertyPrices[tokenId],
+            "The amount sent is not enough for the property"
+        );
+
+        // check if the buyer overpaid
+        if (msg.value > propertyPrices[tokenId]) {
+            uint256 excessAmount = msg.value - propertyPrices[tokenId];
+            payable(msg.sender).transfer(excessAmount);
+        }
+
+        // Record the payment amount
+        paidAmounts[tokenId] = propertyPrices[tokenId];
+
+        // Record the buyer's address
+        buyers[tokenId] = msg.sender;
+    }
+
+    function finalizeSale(uint256 tokenId) external {
+        require(
+            msg.sender == legalEntity,
+            "Only the legal entity can finalize the sale"
+        );
+        require(
+            paidAmounts[tokenId] >= propertyPrices[tokenId],
+            "Payment has not been made for this property"
+        );
+
+        // Transfer the NFT from the seller to the buyer
+        propertyContract.safeTransferFrom(
+            sellers[tokenId],
+            buyers[tokenId],
+            tokenId
+        );
+
+        // Send the funds to the seller
+        sellers[tokenId].transfer(paidAmounts[tokenId]);
+
+        // Update the status of the property
+        propertyStatuses[tokenId] = PropertyStatus.NotForSale;
+
+        // After a property is sold, it should not remain approved
+        propertyApprovals[tokenId] = false;
+
+        // Clear payment and buyer mappings
+        paidAmounts[tokenId] = 0;
+        buyers[tokenId] = address(0);
     }
 }
