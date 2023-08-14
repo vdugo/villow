@@ -105,17 +105,17 @@ contract Escrow is AccessControl {
             "The amount sent is not enough for the property"
         );
 
-        // check if the buyer overpaid
-        if (msg.value > propertyPrices[tokenId]) {
-            uint256 excessAmount = msg.value - propertyPrices[tokenId];
-            payable(msg.sender).transfer(excessAmount);
-        }
-
         // Record the payment amount
         paidAmounts[tokenId] = propertyPrices[tokenId];
 
         // Record the buyer's address
         buyers[tokenId] = msg.sender;
+
+        // check if the buyer overpaid and refund
+        if (msg.value > propertyPrices[tokenId]) {
+            uint256 excessAmount = msg.value - propertyPrices[tokenId];
+            payable(msg.sender).transfer(excessAmount);
+        }
     }
 
     function finalizeSale(uint256 tokenId) external payable {
