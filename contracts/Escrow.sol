@@ -118,7 +118,7 @@ contract Escrow is AccessControl {
         buyers[tokenId] = msg.sender;
     }
 
-    function finalizeSale(uint256 tokenId) external {
+    function finalizeSale(uint256 tokenId) external payable {
         require(
             msg.sender == legalEntity,
             "Only the legal entity can finalize the sale"

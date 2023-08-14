@@ -1,5 +1,5 @@
 const { expect } = require('chai')
-const { ethers } = require('hardhat')
+const { ethers, BigNumber } = require('hardhat')
 
 const tokens = (number) => {
   return ethers.parseUnits(number.toString(), 'ether')
@@ -52,7 +52,10 @@ describe('Escrow', () => {
 
   describe('Listing properties', async () => {
     it('updates the state variable mappings when a listing is creating', async () => {
-      let transaction = await escrow.connect(seller).listProperty('TODO Implement URIs', priceInWei, false)
+
+      let transaction = await property.connect(seller).setApprovalForAll(await escrow.getAddress(), true)
+      await transaction.wait();
+      transaction = await escrow.connect(seller).listProperty('TODO Implement URIs', priceInWei, false)
       await transaction.wait()
 
       expect(await property.tokenURI(1)).to.equal('TODO Implement URIs')
@@ -84,5 +87,63 @@ describe('Escrow', () => {
       await expect(escrow.connect(legalEntity).approveProperty(1)).to.be.reverted
     })
   })
+
+  describe('Buyer Payments', async () => {
+    it('records the correct payment amount', async () => {
+      await escrow.connect(seller).listProperty('TODO Implement URIs', priceInWei, false);
+      await escrow.connect(legalEntity).approveProperty(1);
+      await escrow.connect(buyer).buyerPayment(1, { value: priceInWei });
+
+      expect(await escrow.paidAmounts(1)).to.equal(priceInWei);
+    });
+
+    it('records the buyer address', async () => {
+      await escrow.connect(seller).listProperty('TODO Implement URIs', priceInWei, false);
+      await escrow.connect(legalEntity).approveProperty(1);
+      await escrow.connect(buyer).buyerPayment(1, { value: priceInWei });
+
+      expect(await escrow.buyers(1)).to.equal(await buyer.getAddress());
+    });
+
+    it('refunds overpayment', async () => {
+      const overpayAmount = priceInWei + BigInt(tokens(10).toString());
+
+      await escrow.connect(seller).listProperty('TODO Implement URIs', priceInWei.toString(), false);
+      await escrow.connect(legalEntity).approveProperty(1);
+
+      const oldBalance = BigInt((await ethers.provider.getBalance(buyer.getAddress())).toString());
+      const tx = await escrow.connect(buyer).buyerPayment(1, { value: overpayAmount.toString() });
+      const gasUsed = BigInt((await tx.wait()).gasUsed.toString());
+      const gasPrice = BigInt(tx.gasPrice.toString());
+
+      // Ensure gasUsed and tx.gasPrice are also BigNumbers before arithmetic
+      const gasCost = gasUsed * gasPrice;
+      const expectedNewBalance = oldBalance - priceInWei - gasCost;
+
+      const newBalance = BigInt((await ethers.provider.getBalance(buyer.getAddress())).toString());
+
+      expect(newBalance.toString()).to.equal(expectedNewBalance.toString());
+    });
+
+
+  });
+
+  describe('Finalizing sale of a DirectSale', async () => {
+    it('only allows the legal entity to finalize the sale', async () => {
+      await escrow.connect(seller).listProperty('TODO Implement URIs', priceInWei, false);
+      await escrow.connect(legalEntity).approveProperty(1);
+      await escrow.connect(buyer).buyerPayment(1, { value: priceInWei });
+
+      await expect(escrow.connect(buyer).finalizeSale(1)).to.be.revertedWith("Only the legal entity can finalize the sale");
+    });
+
+    it('rejects finalize sale if payment not made', async () => {
+      await escrow.connect(seller).listProperty('TODO Implement URIs', priceInWei, false);
+      await escrow.connect(legalEntity).approveProperty(1);
+
+      await expect(escrow.connect(legalEntity).finalizeSale(1)).to.be.revertedWith("Payment has not been made for this property");
+    });
+  });
+
 
 })
