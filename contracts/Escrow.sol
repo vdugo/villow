@@ -3,12 +3,12 @@ pragma solidity ^0.8.9;
 
 import "./Property.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-
-import "hardhat/console.sol";
+import "./Bidding.sol";
 
 contract Escrow is AccessControl {
     // buyers and sellers will be message senders
     Property public propertyContract;
+    Bidding public biddingContract;
     address public legalEntity;
     address public appraiser;
     address public inspector;
@@ -30,6 +30,13 @@ contract Escrow is AccessControl {
     // tokenId => paid amount by buyer
     mapping(uint256 => uint256) public paidAmounts;
 
+    // tokenId => appraiser
+    mapping(uint256 => uint256) public appraisedValues;
+    // tokenId => inspector has approved
+    mapping(uint256 => bool) public inspectorApprovals;
+    // tokenId => lender has approved loan
+    mapping(uint256 => bool) public lenderApprovals;
+
     // Define an enum for the sales status of each property
     enum PropertyStatus {
         NotForSale,
@@ -43,13 +50,15 @@ contract Escrow is AccessControl {
         address _propertyContract,
         address _appraiser,
         address _inspector,
-        address _lender
+        address _lender,
+        address _biddingContract
     ) {
         propertyContract = Property(_propertyContract);
         legalEntity = msg.sender;
         appraiser = _appraiser;
         inspector = _inspector;
         lender = _lender;
+        biddingContract = Bidding(_biddingContract);
 
         _setupRole(LEGAL_ENTITY_ROLE, msg.sender);
     }
@@ -147,5 +156,45 @@ contract Escrow is AccessControl {
         // Clear payment and buyer mappings
         paidAmounts[tokenId] = 0;
         buyers[tokenId] = address(0);
+    }
+
+    function startBidding(uint256 tokenId) external {
+        require(propertyApprovals[tokenId], "Property not approved");
+        require(
+            propertyStatuses[tokenId] == PropertyStatus.BiddingNotStarted,
+            "Bidding already started or not applicable"
+        );
+
+        propertyStatuses[tokenId] = PropertyStatus.BiddingActive;
+
+        // Initiate bidding in the Bidding contract
+        biddingContract.initiateBidding(tokenId);
+    }
+
+    // Proxy function to place a bid
+    function placeBid(uint256 tokenId) external payable {
+        // Ensure the property is currently in the bidding phase
+        require(
+            propertyStatuses[tokenId] == PropertyStatus.BiddingActive,
+            "Bidding is not active for this property"
+        );
+
+        // Forward the received funds and call the placeBid function in Bidding.sol
+        // The 'call' function here will forward all available gas and funds to the function in the Bidding contract.
+        // This ensures that the bid function has enough gas to execute and the msg.value is sent as well.
+        (bool success, ) = address(biddingContract).call{value: msg.value}(
+            abi.encodeWithSignature("placeBid(uint256)", tokenId)
+        );
+
+        // Check if the function call was successful
+        require(success, "Bid placement failed");
+    }
+
+    function endBidding(uint256 tokenId) external {
+        // Logic to check the sender's permissions if needed
+
+        uint256 finalBidAmount = biddingContract.finalizeBidding(tokenId);
+        propertyStatuses[tokenId] = PropertyStatus.BiddingEnded;
+        propertyPrices[tokenId] = finalBidAmount; // Set the final sale price based on the highest bid
     }
 }
