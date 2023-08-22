@@ -16,6 +16,16 @@ contract Escrow is AccessControl {
 
     bytes32 public constant LEGAL_ENTITY_ROLE = keccak256("LEGAL_ENTITY_ROLE");
 
+    // Events
+    event PropertyApproved(uint256 tokenId, address approver);
+    event PaymentReceived(uint256 tokenId, address buyer, uint256 amount);
+    event SaleFinalized(
+        uint256 tokenId,
+        address seller,
+        address buyer,
+        uint256 amount
+    );
+
     // tokenId => is approved by legal entity or not
     mapping(uint256 => bool) public propertyApprovals;
     // tokenId => seller
@@ -95,6 +105,7 @@ contract Escrow is AccessControl {
             "Property is already approved"
         );
         propertyApprovals[tokenId] = true;
+        emit PropertyApproved(tokenId, msg.sender);
     }
 
     function buyerPayment(uint256 tokenId) external payable {
@@ -125,6 +136,8 @@ contract Escrow is AccessControl {
             uint256 excessAmount = msg.value - propertyPrices[tokenId];
             payable(msg.sender).transfer(excessAmount);
         }
+
+        emit PaymentReceived(tokenId, msg.sender, msg.value);
     }
 
     function finalizeSale(uint256 tokenId) external payable {
@@ -156,6 +169,13 @@ contract Escrow is AccessControl {
         // Clear payment and buyer mappings
         paidAmounts[tokenId] = 0;
         buyers[tokenId] = address(0);
+
+        emit SaleFinalized(
+            tokenId,
+            sellers[tokenId],
+            buyers[tokenId],
+            paidAmounts[tokenId]
+        );
     }
 
     function startBidding(uint256 tokenId, uint256 customDuration) external {
