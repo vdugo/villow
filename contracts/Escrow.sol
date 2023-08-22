@@ -60,17 +60,23 @@ contract Escrow is AccessControl {
         address _propertyContract,
         address _appraiser,
         address _inspector,
-        address _lender,
-        address _biddingContract
+        address _lender
     ) {
         propertyContract = Property(_propertyContract);
         legalEntity = msg.sender;
         appraiser = _appraiser;
         inspector = _inspector;
         lender = _lender;
-        biddingContract = Bidding(_biddingContract);
 
         _setupRole(LEGAL_ENTITY_ROLE, msg.sender);
+    }
+
+    function setBiddingContract(address _biddingContract) external {
+        require(
+            msg.sender == legalEntity,
+            "Only the legal entity can set the bidding contract"
+        );
+        biddingContract = Bidding(_biddingContract);
     }
 
     function listProperty(

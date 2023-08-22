@@ -27,9 +27,13 @@ describe('Escrow', () => {
     appraiser.getAddress(),
     inspector.getAddress(),
     lender.getAddress()])
+    await escrow.waitForDeployment()
 
-    escrow.waitForDeployment()
+    bidding = await ethers.deployContract("Bidding", [property.getAddress(), escrow.getAddress()])
+    await bidding.waitForDeployment()
 
+    // Now, set the Bidding contract's address in the Escrow contract
+    await escrow.setBiddingContract(bidding.getAddress())
   })
 
   describe('Deployment', async () => {
