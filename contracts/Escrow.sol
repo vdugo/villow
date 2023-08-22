@@ -158,7 +158,7 @@ contract Escrow is AccessControl {
         buyers[tokenId] = address(0);
     }
 
-    function startBidding(uint256 tokenId) external {
+    function startBidding(uint256 tokenId, uint256 customDuration) external {
         require(propertyApprovals[tokenId], "Property not approved");
         require(
             propertyStatuses[tokenId] == PropertyStatus.BiddingNotStarted,
@@ -167,8 +167,15 @@ contract Escrow is AccessControl {
 
         propertyStatuses[tokenId] = PropertyStatus.BiddingActive;
 
-        // Initiate bidding in the Bidding contract
-        biddingContract.initiateBidding(tokenId);
+        // Default duration for the bid (7 days in seconds)
+        uint256 duration = 24 * 60 * 60; // equals 86,400 seconds or 7 days
+
+        if (customDuration != 0) {
+            duration = customDuration;
+        }
+
+        // Initiate bidding in the Bidding contract with the duration
+        biddingContract.initiateBidding(tokenId, duration);
     }
 
     // Proxy function to place a bid
