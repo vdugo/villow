@@ -1,0 +1,14 @@
+Deploying contracts with the account: 0xe37cE5e6A34c61C806f7DA565794a86260FB580a
+Property contract successfully deployed to 0xAEEA09509C8AB1597cDa9e4C9942Ea30AdD2370D
+Escrow contract successfully deployed to 0xD13a67D4C88BDE8e7703D3878ae9B19BF1EEC0f9
+Bidding contract successfully deployed to 0x1550C4619A9D732BF8d4D2Daa78E8fbfcb0bB4f6
+Sucessfully set the Bidding contract to the state
+
+Successfully verified contract Escrow on the block explorer.
+https://sepolia.etherscan.io/address/0xD13a67D4C88BDE8e7703D3878ae9B19BF1EEC0f9#code
+
+Successfully verified contract Property on the block explorer.
+https://sepolia.etherscan.io/address/0xAEEA09509C8AB1597cDa9e4C9942Ea30AdD2370D#code
+
+Successfully verified contract Bidding on the block explorer.
+https://sepolia.etherscan.io/address/0x1550C4619A9D732BF8d4D2Daa78E8fbfcb0bB4f6#code

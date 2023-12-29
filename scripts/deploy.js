@@ -1,33 +1,33 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// You can also run a script with `npx hardhat run <script>`. If you do that, Hardhat
-// will compile your contracts, add the Hardhat Runtime Environment's members to the
-// global scope, and execute the script.
-const hre = require("hardhat");
-
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
+  // get the signer
+  const [deployer] = await ethers.getSigners();
 
-  const lockedAmount = hre.ethers.parseEther("0.001");
+  console.log("Deploying contracts with the account:", await deployer.getAddress());
+  // deploy the property NFT contract
+  property = await ethers.deployContract("Property", [])
+  await property.waitForDeployment()
+  console.log(`Property contract successfully deployed to ${await property.getAddress()}`)
+  // deployer is the legalentity
+  escrow = await ethers.deployContract("Escrow", [property.getAddress(),
+    '0xF45afaB6a593A6d1E2B67A8Ca59AD95aA0412ffE', // appraiser
+    '0x2029228CcA65603185Da435B368f2B6069CD16B4', // inspector
+    '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266']) // lender
+  await escrow.waitForDeployment()
+  console.log(`Escrow contract successfully deployed to ${await escrow.getAddress()}`)
 
-  const lock = await hre.ethers.deployContract("Lock", [unlockTime], {
-    value: lockedAmount,
-  });
+  bidding = await ethers.deployContract("Bidding", [property.getAddress(), escrow.getAddress()])
+  await bidding.waitForDeployment()
+  console.log(`Bidding contract successfully deployed to ${await bidding.getAddress()}`)
 
-  await lock.waitForDeployment();
 
-  console.log(
-    `Lock with ${ethers.formatEther(
-      lockedAmount
-    )}ETH and unlock timestamp ${unlockTime} deployed to ${lock.target}`
-  );
+  // Now, set the Bidding contract's address in the Escrow contract
+  await escrow.setBiddingContract(bidding.getAddress())
+  console.log("Sucessfully set the Bidding contract to the state")
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

@@ -47,22 +47,31 @@ contract Bidding {
 
     function placeBid(uint256 tokenId) external payable {
         require(bidEndTimes[tokenId] > block.timestamp, "Bidding has ended.");
-        require(
-            msg.value > highestBids[tokenId],
-            "There's already a higher bid."
-        );
 
         uint256 refundAmount = highestBids[tokenId];
         address previousBidder = highestBidders[tokenId];
 
-        // Update the state first
-        highestBids[tokenId] = msg.value;
-        highestBidders[tokenId] = msg.sender;
+        // If the bidder is the current highest bidder, only require them to outbid themselves.
+        // Otherwise, the new bidder should outbid the current highest bid.
+        if (msg.sender == highestBidders[tokenId]) {
+            require(
+                msg.value + highestBids[tokenId] > highestBids[tokenId],
+                "Combined bid must exceed the current bid."
+            );
+            highestBids[tokenId] += msg.value;
+        } else {
+            require(
+                msg.value > highestBids[tokenId],
+                "There's already a higher bid."
+            );
+            highestBids[tokenId] = msg.value;
+            highestBidders[tokenId] = msg.sender;
+        }
 
-        emit BidPlaced(tokenId, msg.sender, msg.value);
+        emit BidPlaced(tokenId, msg.sender, highestBids[tokenId]);
 
-        // Refund the old highest bidder if there was one
-        if (refundAmount > 0) {
+        // Refund the old highest bidder if there was one and the current sender isn't the previous bidder
+        if (refundAmount > 0 && msg.sender != previousBidder) {
             payable(previousBidder).transfer(refundAmount);
         }
     }
